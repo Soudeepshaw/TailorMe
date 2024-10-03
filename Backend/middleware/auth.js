@@ -1,86 +1,32 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const config = require('../config/config');
 const User = require('../models/User');
 
-const router = express.Router();
+exports.protect = async (req, res, next) => {
+  let token;
 
-// Register
-router.post('/register', async (req, res) => {
-  try {
-    const { username, email, password, role } = req.body;
-
-    // Check if user already exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create new user
-    user = new User({
-      username,
-      email,
-      password: hashedPassword,
-      role
-    });
-
-    await user.save();
-
-    // Create and send JWT token
-    const payload = {
-      user: {
-        id: user.id,
-        role: user.role
-      }
-    };
-
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
-      if (err) throw err;
-      res.json({ token });
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
   }
-});
 
-// Login
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    // Check if user exists
-    let user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Create and send JWT token
-    const payload = {
-      user: {
-        id: user.id,
-        role: user.role
-      }
-    };
-
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
-      if (err) throw err;
-      res.json({ token });
-    });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+  if (!token) {
+    return res.status(401).json({ message: 'Not authorized to access this route' });
   }
-});
 
-module.exports = router;
+  try {
+    const decoded = jwt.verify(token, config.jwtSecret);
+    req.user = await User.findById(decoded.id);
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized to access this route' });
+  }
+};
+
+exports.authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'User role is not authorized to access this route' });
+    }
+    next();
+  };
+};
