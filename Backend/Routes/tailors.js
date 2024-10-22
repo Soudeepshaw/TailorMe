@@ -1,24 +1,36 @@
-// routes/tailors.js
 const express = require('express');
 const router = express.Router();
-const { protect, authorize } = require('../middleware/auth');
-const {
-  createProfile,
-  getProfile,
-  updateProfile,
-  createPortfolioItem,
-  updatePortfolioItem,
-  deletePortfolioItem
-} = require('../controllers/tailorController');
+const tailorController = require('../controllers/tailorController');
+const {protect} = require('../middleware/auth');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
-router.post('/profile', protect, authorize('tailor'), createProfile);
-router.get('/profile', protect, authorize('tailor'), getProfile);
-router.put('/profile', protect, authorize('tailor'), updateProfile);
+// Create tailor profile
+console.log(typeof protect); // Should output 'function'
+console.log(typeof tailorController.createProfile); // Should output 'function'
 
+router.post('/profile', protect, tailorController.createProfile);
 
-router.post('/portfolio', protect, authorize('tailor'), createPortfolioItem);
-router.put('/portfolio/:id', protect, authorize('tailor'), updatePortfolioItem);
-router.delete('/portfolio/:id', protect, authorize('tailor'), deletePortfolioItem);
+// Get tailor profile
+router.get('/profile', protect, tailorController.getProfile);
 
+// Update tailor profile
+router.put('/profile', protect, upload.single('profilePicture'), tailorController.updateProfile);
+
+// Get all tailors
+router.get('/', tailorController.getAllTailors);
+router.get('/profile-picture-url', protect, tailorController.getProfilePictureUrl);
+
+// Get tailor by ID
+router.get('/:id', tailorController.getTailorById);
+
+// Add portfolio item
+router.post('/portfolio', protect, upload.single('image'), tailorController.addPortfolioItem);
+
+// Update portfolio item
+router.put('/portfolio/:itemId', protect, upload.single('image'), tailorController.updatePortfolioItem);
+
+// Delete portfolio item
+router.delete('/portfolio/:itemId', protect, tailorController.deletePortfolioItem);
 
 module.exports = router;

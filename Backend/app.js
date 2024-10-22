@@ -8,9 +8,11 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const connectDB = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
+const s3AuthMiddleware = require('./middleware/s3AuthMiddleware');
 
 
 // Route imports
+const uploadRoutes = require('./routes/uploadRoutes');
 const customerRoutes = require('./routes/customer');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -62,6 +64,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/upload', uploadRoutes);
 
 
 // Error handling middleware

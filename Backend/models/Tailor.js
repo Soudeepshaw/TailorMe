@@ -7,14 +7,13 @@ const tailorSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  profileImage: {
-    type: String,
-    default: 'default_tailor.jpg'
-  },
+  
+  profilePictureUrl: String,
   bio: {
-    type: String
+    type: String,
+    default: ''
     
-  },
+  },  
   specialties: {
     type: [String],
   },

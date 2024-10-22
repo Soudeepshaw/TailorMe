@@ -5,7 +5,7 @@ const catalogItemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: String,
   basePrice: { type: Number, required: true },
-  images: [String],
+  mages: [{ url: String, key: String }],
   defaultFabric: { type: mongoose.Schema.Types.ObjectId, ref: 'Fabric' }
 });
 

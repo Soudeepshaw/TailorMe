@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const Tailor = require('../models/Tailor');
 const CustomerProfile=require('../models/CustomerProfile')
-
+const { generateSignedUrl } = require('../utils/s3Utils');
 
 exports.register = async (req, res) => {
   try {
@@ -41,6 +41,7 @@ exports.register = async (req, res) => {
       try {
         const tailor = await Tailor.create({
           user: user._id,
+          profilePicture: {key: '' }
           // Do not include any email field here
         });
         console.log('Tailor created:', tailor);
@@ -52,6 +53,7 @@ exports.register = async (req, res) => {
     } else if (role === 'customer') {
       await CustomerProfile.create({
         user: user._id,
+        profilePicture: {key: '' }
       });
       console.log('Customer profile created');
     }
@@ -110,5 +112,15 @@ exports.login = async (req, res) => {
   } catch (error) {
     console.error('Error in user login:', error);
     res.status(500).json({ message: 'Error in user login', error: error.message });
+  }
+};
+exports.getProfilePictureUploadUrl = async (req, res) => {
+  try {
+    const { fileName, fileType } = req.body;
+    const key = `profilePictures/${req.user.id}/${Date.now()}-${fileName}`;
+    const url = await generateSignedUrl(key, fileType);
+    res.json({ success: true, url, key });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 };

@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
     lowercase: true
   },
+  profilePictureUrl: String,
   password: { type: String, required: true },
   role: { type: String, enum: ['customer', 'tailor', 'admin'], default: 'customer' },
   location: {
@@ -25,6 +26,7 @@ const userSchema = new mongoose.Schema({
       default: undefined
     }
   },
+  
   phone: { type: String },
   createdAt: { type: Date, default: Date.now }
 });

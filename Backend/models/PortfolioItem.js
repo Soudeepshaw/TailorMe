@@ -15,10 +15,7 @@ const portfolioItemSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  images: [{
-    type: String,
-    required: true
-  }],
+  images: [{ url: String, key: String }],
   category: {
     type: String,
     required: true

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { generateGetSignedUrl } = require('../utils/s3Utils');
 
 const customerSchema = new mongoose.Schema({
   user: {
@@ -7,10 +8,10 @@ const customerSchema = new mongoose.Schema({
     required: true,
     unique:true
   },
-  profileImage: {
-    type: String,
-    default: 'default_customer.jpg'
+  profilePicture: {
+    key: String
   },
+  
   orders: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order'
@@ -28,5 +29,12 @@ const customerSchema = new mongoose.Schema({
     ref: 'CartItem'
   }]
 }, { timestamps: true });
+
+customerSchema.methods.getProfilePictureUrl = async function() {
+  if (this.profilePicture && this.profilePicture.key) {
+    return generateGetSignedUrl(this.profilePicture.key);
+  }
+  return null;
+};
 
 module.exports = mongoose.model('CustomerProfile', customerSchema);
